@@ -1,0 +1,66 @@
+groups:
+  - name: linux-server-alerts
+    rules:
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus target is down"
+          description: >-
+            Target {{ $labels.job }} at {{ $labels.instance }}
+            has been unavailable for more than 2 minutes.
+
+      - alert: HighCPUUsage
+        expr: |
+          100 * (
+            1 - avg by(instance) (
+              rate(node_cpu_seconds_total{mode="idle"}[5m])
+            )
+          ) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: >-
+            CPU usage on {{ $labels.instance }}
+            has exceeded 80% for 5 minutes.
+
+      - alert: LowAvailableMemory
+        expr: |
+          100 * (
+            node_memory_MemAvailable_bytes
+            / node_memory_MemTotal_bytes
+          ) < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low available memory"
+          description: >-
+            Available memory on {{ $labels.instance }}
+            is below 10%.
+
+      - alert: LowDiskSpace
+        expr: |
+          100 * (
+            node_filesystem_avail_bytes{
+              mountpoint="/",
+              fstype!~"tmpfs|overlay"
+            }
+            /
+            node_filesystem_size_bytes{
+              mountpoint="/",
+              fstype!~"tmpfs|overlay"
+            }
+          ) < 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low root filesystem space"
+          description: >-
+            Free space on the root filesystem of
+            {{ $labels.instance }} is below 15%.

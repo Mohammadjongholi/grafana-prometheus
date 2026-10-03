@@ -1,0 +1,19 @@
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Local state and backups
+*.bak
+*.backup
+*.swp
+*.tmp
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

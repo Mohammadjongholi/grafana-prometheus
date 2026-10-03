@@ -1,3 +1,4 @@
+
 services:
   prometheus:
     image: prom/prometheus:latest
@@ -7,10 +8,14 @@ services:
       - "9091:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,Z
+      - ./prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro,Z
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+    security_opt:
+      - no-new-privileges:true
     networks:
       - monitoring
 
@@ -22,6 +27,8 @@ services:
       - "--path.rootfs=/host"
     volumes:
       - /:/host:ro,rslave
+    security_opt:
+      - no-new-privileges:true
     networks:
       - monitoring
 
@@ -31,8 +38,14 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    environment:
+      GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro,Z
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro,Z
+    security_opt:
+      - no-new-privileges:true
     networks:
       - monitoring
 
@@ -42,4 +55,6 @@ networks:
 
 volumes:
   prometheus_data:
+    name: monitoring-project_prometheus_data
   grafana_data:
+    name: monitoring-project_grafana_data
